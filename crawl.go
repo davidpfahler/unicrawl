@@ -147,6 +147,7 @@ func main() {
 	privateKey := flag.String("private-key", "", "secret mailgun api key")
 	publicKey := flag.String("public-key", "", "mailgun public api key")
 	dry := flag.Bool("dry", false, "do not update cache & only print to stdout (no e-mail)")
+	verbose := flag.Bool("verbose", false, "Print detailed output per monitored url.")
 	flag.Parse()
 
 	if *domain == "" || *privateKey == "" || *publicKey == "" {
@@ -174,7 +175,9 @@ func main() {
 			}
 		} else {
 			if reflect.DeepEqual(cached, body) {
-				fmt.Printf("This URL didn't change: %s\n\n", url)
+				if *verbose {
+					fmt.Printf("This URL didn't change: %s\n\n", url)
+				}
 			} else {
 				cachedDoc := getGoqueryDoc(cached)
 				currentDoc := getGoqueryDoc(body)
@@ -182,7 +185,9 @@ func main() {
 				currentContent, _ := currentDoc.Find("#content").Html()
 
 				if cachedContent == currentContent {
-					fmt.Println("The website changed, but the content stayed the same.")
+					if *verbose {
+						fmt.Println("The website changed, but the content stayed the same.")
+					}
 				} else {
 					cachedText, _ := html2text.FromString(cachedContent)
 					currentText, _ := html2text.FromString(currentContent)
