@@ -45,18 +45,15 @@ func getMD5Hash(s string) string {
 	return fmt.Sprintf("%x", h)
 }
 
-func requestURL(url string) []byte {
+func requestURL(url string) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return body
+	return body, err
 }
 
 func getGoqueryDoc(body []byte) *goquery.Document {
@@ -158,7 +155,11 @@ func main() {
 
 	urls := loadUrls()
 	for _, url := range urls {
-		body := requestURL(url)
+		body, err := requestURL(url)
+		if err != nil {
+			log.Println("Skipped URL because of error requesting it:", url)
+			continue
+		}
 		filename := getExecFolder() + "/cache/" + getMD5Hash(url) + ".html"
 
 		cached, err := ioutil.ReadFile(filename)
